@@ -1,17 +1,12 @@
-CC=g++
+CC = g++
+CFLAGS = -Wall -std=c++1z -w -L. -I.
+DEPS = header.h abc.h
+OBJ = header.o Ex.o abc.o
+%.o: %.cpp $(DEPS)
+	$(CC) $(CFLAGS) -c -o $@ $<
 
-CFLAGS=-c -Wall
+hello: $(OBJ)
+	$(CC) $(CFLAGS) -o $@ $^
 
-all: hello
-
-hello: Ex.o abc.o
-		$(CC) Ex.o abc.o -o hello
-
-Ex.o: Ex.cpp
-		$(CC) $(CFLAGS) Ex.cpp
-
-abc.o: abc.cpp
-		$(CC) $(CFLAGS) Ex.cpp
-
-clean: 
-		rm -rf *o hello
+clean:
+	rm $(OBJ)
