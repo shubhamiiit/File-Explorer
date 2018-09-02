@@ -218,9 +218,40 @@ void deletes(string destination){
 	}
 	//closedir(dir); 
 }
-void Move_mode(string command){
-		printf("shubham is a bad boy");
+void move_dir(string, string,string);
+void move_file(string, string);
+void Move_mode(vector<string>results,string str){
+		string source = str;
+		string destination = "";
+		if(strcmp(results[1].c_str(),"-r")==0){
+			for(int i=2 ;i < results.size()-1;i++){
+			destination = str+results[results.size()-1];
+			string name = results[i];
+			move_dir(source+"/"+name,destination,name);
+			}
+		}
+		else{
+			for(int i=1 ;i < results.size()-1;i++){
+			destination = str+results[results.size()-1];
+			string name = results[i];
+			move_file(source+"/"+name,destination);
+		}
+	}
 }
+void move_dir(string source, string destination,string name){
+	cerr << "move dir" << endl;
+	string original_source = source;
+	copies( source, destination,name);
+	deletes(original_source);
+}
+
+void move_file(string source, string destination){
+	cerr << "move file" <<endl; 
+	string original_source = source;
+	copy_file(source, destination);
+	deletes(original_source);
+}
+
 void searches(string );
 void Search(vector<string>&results) {
 	string name = results[1];
@@ -403,7 +434,6 @@ int main()
 		if(choice == 'q')break;
 		vector <string>pathvector;
 
-		
 		//pathvector.push_back(str);
 		//k++;
 		
@@ -443,7 +473,8 @@ int main()
 						cursor--;
 						printf("\033[1A");
 						if(cursor <= i && i!=0){
-							i--;
+							i--;/*if(fork()!=0)
+    				execlp("/usr/bin/xdg-open", "xdg-open", str.c_str() ,NULL);*/
 							printf("\033[2J"); 
 							printer(v,i);
 							printf("\033[;H");
@@ -517,11 +548,17 @@ int main()
 					}
 
 					else if(strcmp( results[0].c_str() ,"move")== 0){
-						Move_mode(command);
+						Move_mode(results,str);
+						printf("\033[2K");
+						printf("\033[36;1H");
+						cout << "command mode : ";
 					}
 					
 					else if(strcmp( results[0].c_str() ,"search")== 0){
 						Search(results);
+						printf("\033[2K");
+						printf("\033[36;1H");
+						cout << "command mode : ";
 					}
 					else if(strcmp( results[0].c_str() ,"create_dir")== 0){
 						create_dir(results);
@@ -555,7 +592,9 @@ int main()
 						cout << "command mode : ";
 					}
 					else if(strcmp( results[0].c_str() ,"snapshot")== 0){
-
+						printf("\033[2K");
+						printf("\033[36;1H");
+						cout << "command mode : ";
 					}
 					else{
 						printf("\033[2K");

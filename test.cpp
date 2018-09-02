@@ -78,18 +78,19 @@ void copies(string , string ,string);
 void Copy_mode(vector<string>&results,string str){
 	string source = str;
 	string destination = "";
-	destination += str+results[2];
-	//destination += "/";
-	//destination += results[1];
-	string name = results[1];
-	copies(source+"/"+name,destination,name);
+	for(int i=1 ;i < results.size()-1;i++){
+		destination += str+results[results.size()-1];
+		string name = results[i];
+		copies(source+"/"+name,destination,name);
+	}
+	
 }
 int copy_file(string source , string destination){
 	cerr<<source<<endl<<destination<<" "<<endl;
 	cerr<<endl;
 	int file_dest, file_source;
 	char buffer[4096]; ssize_t xread;
-	int errno;
+	
 
 	file_source = open(source.c_str(), O_RDONLY);
 	if(file_source < 0)
@@ -165,10 +166,92 @@ void copies(string source, string destination, string name){
 	} 
 	closedir(dir); 
 }
+void deletes(string);
 
-void Move_mode(string command){
-		printf("shubham is a bad boy");
+void delete_mode(vector<string>&results,string str){
+	
+	for(int i=1 ;i < results.size();i++){
+		string destination = str+"/"+results[i];
+		cerr<<"calling deletes with: "<<destination;
+		deletes(destination);
+	}
 }
+
+void deletes(string destination){
+	cerr<<"in deletes \n";
+	DIR *dir; 
+	struct dirent *d; 
+	struct stat filestat; 
+
+	if(stat(destination.c_str(),&filestat)>=0){
+		int m = filestat.st_mode;
+		if(S_ISDIR(m)){
+			if (!(dir = opendir((char *)destination.c_str()))) 
+				return; 
+			while ((d = readdir(dir)) != NULL) {	 
+				if (d->d_type == 4) {//cerr << "enter" <<endl;
+					
+					if (strcmp(d->d_name, ".") == 0 || strcmp(d->d_name, "..") == 0) 
+						continue; 
+					string name=d->d_name; 
+					string destination_new = destination+"/"+d->d_name; 
+					//cerr <<source<<endl<<endl;
+					deletes(destination_new); 
+				}else{
+					string destination_new = destination+"/"+d->d_name; 
+					cerr<<"\n deleting12: "<<d->d_name;
+					unlink(destination_new.c_str());
+					perror("\nunlink: ");
+				} 
+					
+			}
+					cerr<<"\n deleting: "<<destination;
+					rmdir(destination.c_str());
+					perror("\nrmdir: ");
+			
+		}else{
+			cerr<<"\n deleting: "<<destination;
+			//cerr<<"here..";
+			unlink(destination.c_str());
+			perror("\nunlink34: ");
+		}
+	}
+	//closedir(dir); 
+}
+void move_dir(string, string,string);
+void move_file(string, string);
+void Move_mode(vector<string>results,string str){
+		string source = str;
+		string destination = "";
+		if(strcmp(results[1].c_str(),"-r")==0){
+			for(int i=2 ;i < results.size()-1;i++){
+			destination = str+results[results.size()-1];
+			string name = results[i];
+			move_dir(source+"/"+name,destination,name);
+			}
+		}
+		else{
+			for(int i=1 ;i < results.size()-1;i++){
+			destination = str+results[results.size()-1];
+			string name = results[i];
+			move_file(source+"/"+name,destination);
+		}
+	}
+}
+void move_dir(string source, string destination,string name){
+	cerr << "move dir" << endl;
+	string original_source = source;
+	copies( source, destination,name);
+	deletes(original_source);
+}
+
+void move_file(string source, string destination){
+	cerr << "move file" <<endl; 
+	string original_source = source;
+	copy_file(source, destination);
+	deletes(original_source);
+}
+
 void searches(string );
 void Search(vector<string>&results) {
 	string name = results[1];
@@ -351,7 +434,6 @@ int main()
 		if(choice == 'q')break;
 		vector <string>pathvector;
 
-		
 		//pathvector.push_back(str);
 		//k++;
 		
@@ -391,7 +473,8 @@ int main()
 						cursor--;
 						printf("\033[1A");
 						if(cursor <= i && i!=0){
-							i--;
+							i--;/*if(fork()!=0)
+    				execlp("/usr/bin/xdg-open", "xdg-open", str.c_str() ,NULL);*/
 							printf("\033[2J"); 
 							printer(v,i);
 							printf("\033[;H");
@@ -465,11 +548,17 @@ int main()
 					}
 
 					else if(strcmp( results[0].c_str() ,"move")== 0){
-						Move_mode(command);
+						Move_mode(results,str);
+						printf("\033[2K");
+						printf("\033[36;1H");
+						cout << "command mode : ";
 					}
 					
 					else if(strcmp( results[0].c_str() ,"search")== 0){
 						Search(results);
+						printf("\033[2K");
+						printf("\033[36;1H");
+						cout << "command mode : ";
 					}
 					else if(strcmp( results[0].c_str() ,"create_dir")== 0){
 						create_dir(results);
@@ -484,8 +573,11 @@ int main()
 						printf("\033[36;1H");
 						cout << "command mode : ";
 					}
-					else if(strcmp (results[0].c_str() ,"delete_file")== 0){
-
+					else if(strcmp (results[0].c_str() ,"delete")== 0){
+						delete_mode(results,str);
+						printf("\033[2K");
+						printf("\033[36;1H");
+						cout << "command mode : ";
 					}
 					else if(strcmp( results[0].c_str() ,"goto")== 0){
 						printf("\033[2J");
@@ -500,7 +592,9 @@ int main()
 						cout << "command mode : ";
 					}
 					else if(strcmp( results[0].c_str() ,"snapshot")== 0){
-
+						printf("\033[2K");
+						printf("\033[36;1H");
+						cout << "command mode : ";
 					}
 					else{
 						printf("\033[2K");
@@ -539,7 +633,7 @@ int main()
 	}while(1);
 	
 	tcsetattr(fileno(input), TCSANOW, &initial_settings);
-    //printf("\033[2J"); 	
-    //printf("\033[?1041h");  
+    printf("\033[2J"); 	
+    printf("\033[;H");  
     return 0;
 } 

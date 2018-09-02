@@ -1,7 +1,0 @@
-3 copy test2
-/home/shubham/Documents/OperAssign/test2 /home/shubham/Documents/OperAssign/New test2
-I am herereFSDFSDF/test2
-/home/shubham/Documents/OperAssign/test2/a /test2 a
-I am herereFSDFSDFFSDFSDF/test2
-/home/shubham/Documents/OperAssign/test2/dfds /test2 dfds
-I am herere
