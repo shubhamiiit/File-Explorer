@@ -239,18 +239,13 @@ void Move_mode(vector<string>results,string str){
 	}
 }
 void move_dir(string source, string destination,string name){
-	cerr << "move dir" << endl;
-	cerr << "I a m"<<source<<endl;
-	cerr<<"I ma fdjksf"<<destination<<endl;
+	
 	string original_source = source;
 	copies( source, destination,name);
 	deletes(original_source);
 }
 
 void move_file(string source, string destination){
-	cerr << "move filfdgksdgjl	e" <<endl; 
-	cerr << source<<endl;
-	cerr<<destination<<endl;
 	string original_source = source;
 	copy_file(source, destination);
 	deletes(original_source);
@@ -266,7 +261,12 @@ void searches(string name, string str){
 	struct dirent *d; 
 	struct stat filestat; 
 	vector <string> search_str;
-	string Path = str + "/" + name;
+	string Path = str ;
+	/* int x;
+	
+	cout << Path <<endl;
+	cout << name <<endl;
+	cin >>x; */
 	if(stat(Path.c_str(),&filestat)>=0){
 		int m = filestat.st_mode;
 		if(S_ISDIR(m)){
@@ -279,24 +279,27 @@ void searches(string name, string str){
 						continue;  
 					string search_name = d->d_name;
 					string Path_new = Path+"/"+d->d_name;
+					cerr << Path << " if " << Path_new<<endl ;
 					if(strcmp(name.c_str(),search_name.c_str())==0){
-						search_str.push_back(Path);
+						search_str.push_back(Path_new);
 					}
 					searches(Path_new,str); 
 				}
 				else{
 					string Path_new = Path+"/"+d->d_name; 
+					cerr << "else" << Path_new << Path<<endl;
 					string search_name = d->d_name;
 					if(strcmp(name.c_str(),search_name.c_str())==0)
-						search_str.push_back(Path);	
+						search_str.push_back(Path_new);	
 				} 
 					
 			}
-			printf("\033[2K");
+			printf("\033[2J");
 			printf("\033[;H");
 			for(int i=0;i<search_str.size();i++){
+				cerr << "loop" <<endl;
 				cout << search_str[i] << endl;
-			}		
+			}	
 		}
 	}
 }
