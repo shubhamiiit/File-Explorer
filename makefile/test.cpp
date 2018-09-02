@@ -210,10 +210,10 @@ void deletes(string destination){
 					perror("\nrmdir: ");
 			
 		}else{
-			cerr<<"\n deleting: "<<destination;
+			//cerr<<"\n deleting: "<<destination;
 			//cerr<<"here..";
 			unlink(destination.c_str());
-			perror("\nunlink34: ");
+			//perror("\nunlink34: ");
 		}
 	}
 	//closedir(dir); 
@@ -234,52 +234,71 @@ void Move_mode(vector<string>results,string str){
 			for(int i=1 ;i < results.size()-1;i++){
 			destination = str+results[results.size()-1];
 			string name = results[i];
-			move_file(source+"/"+name,destination);
+			move_file(source+"/"+name,destination+"/"+name);
 		}
 	}
 }
 void move_dir(string source, string destination,string name){
 	cerr << "move dir" << endl;
+	cerr << "I a m"<<source<<endl;
+	cerr<<"I ma fdjksf"<<destination<<endl;
 	string original_source = source;
 	copies( source, destination,name);
 	deletes(original_source);
 }
 
 void move_file(string source, string destination){
-	cerr << "move file" <<endl; 
+	cerr << "move filfdgksdgjl	e" <<endl; 
+	cerr << source<<endl;
+	cerr<<destination<<endl;
 	string original_source = source;
 	copy_file(source, destination);
 	deletes(original_source);
 }
 
-void searches(string );
-void Search(vector<string>&results) {
+void searches(string , string);
+void Search(vector<string>&results,string str) {
 	string name = results[1];
-	searches(name);
+	searches(name,str);
 }
-void searches(string name){
-    DIR *dir = opendir(name.c_str());                
-    if(dir) {
-        char Path[256], *end = Path;
-        struct dirent *el;
-		vector <string>search;
-        strcpy(Path, name.c_str());                 
-        end += strlen(name.c_str());          
-        while((el = readdir(dir)) != NULL) {  
-            struct stat info;                
-            strcpy(end, el->d_name);       
-            if(!stat(Path, &info)){         
-                if(S_ISDIR(info.st_mode)) { 
-					printf("%s",Path);
-					cout << endl; 
-                    searches(Path);   
-                } 
-				else if(S_ISREG(info.st_mode)) { 
-				     
-                }
+void searches(string name, string str){
+	DIR *dir; 
+	struct dirent *d; 
+	struct stat filestat; 
+	vector <string> search_str;
+	string Path = str + "/" + name;
+	if(stat(Path.c_str(),&filestat)>=0){
+		int m = filestat.st_mode;
+		if(S_ISDIR(m)){
+			if (!(dir = opendir((char *)Path.c_str()))) 
+				return; 
+			while ((d = readdir(dir)) != NULL) {	 
+				if (d->d_type == 4) {
+					
+					if (strcmp(d->d_name, ".") == 0 || strcmp(d->d_name, "..") == 0) 
+						continue;  
+					string search_name = d->d_name;
+					string Path_new = Path+"/"+d->d_name;
+					if(strcmp(name.c_str(),search_name.c_str())==0){
+						search_str.push_back(Path);
+					}
+					searches(Path_new,str); 
+				}
+				else{
+					string Path_new = Path+"/"+d->d_name; 
+					string search_name = d->d_name;
+					if(strcmp(name.c_str(),search_name.c_str())==0)
+						search_str.push_back(Path);	
+				} 
+					
 			}
-        }
-    }
+			printf("\033[2K");
+			printf("\033[;H");
+			for(int i=0;i<search_str.size();i++){
+				cout << search_str[i] << endl;
+			}		
+		}
+	}
 }
 
 int diropen(vector <stuff> &v,string str){
@@ -555,7 +574,7 @@ int main()
 					}
 					
 					else if(strcmp( results[0].c_str() ,"search")== 0){
-						Search(results);
+						Search(results,str);
 						printf("\033[2K");
 						printf("\033[36;1H");
 						cout << "command mode : ";
