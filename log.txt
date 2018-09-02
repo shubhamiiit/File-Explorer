@@ -1,0 +1,25 @@
+3 copy SR
+/home/shubham/Documents/OperAssign/SR/b.txt
+/home/shubham/Documents/OperAssign/Shubham/SR/b.txt 
+
+/home/shubham/Documents/OperAssign/SR/child1/bcd.txt
+/home/shubham/Documents/OperAssign/Shubham/SR/child1/bcd.txt 
+
+/home/shubham/Documents/OperAssign/SR/child1/abc.txt
+/home/shubham/Documents/OperAssign/Shubham/SR/child1/abc.txt 
+
+/home/shubham/Documents/OperAssign/SR/child1/child.txt
+/home/shubham/Documents/OperAssign/Shubham/SR/child1/child.txt 
+
+/home/shubham/Documents/OperAssign/SR/a.txt
+/home/shubham/Documents/OperAssign/Shubham/SR/a.txt 
+
+/home/shubham/Documents/OperAssign/SR/child2/pqr.txt
+/home/shubham/Documents/OperAssign/Shubham/SR/child2/pqr.txt 
+
+/home/shubham/Documents/OperAssign/SR/child2/xyz.txt
+/home/shubham/Documents/OperAssign/Shubham/SR/child2/xyz.txt 
+
+/home/shubham/Documents/OperAssign/SR/c.txt
+/home/shubham/Documents/OperAssign/Shubham/SR/c.txt 
+

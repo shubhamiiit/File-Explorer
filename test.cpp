@@ -84,36 +84,86 @@ void Copy_mode(vector<string>&results,string str){
 	string name = results[1];
 	copies(source+"/"+name,destination,name);
 }
+int copy_file(string source , string destination){
+	cerr<<source<<endl<<destination<<" "<<endl;
+	cerr<<endl;
+	int file_dest, file_source;
+	char buffer[4096]; ssize_t xread;
+	int errno;
+
+	file_source = open(source.c_str(), O_RDONLY);
+	if(file_source < 0)
+		return -1;
+	
+	file_dest = open(destination.c_str(), O_WRONLY | O_CREAT | O_EXCL,__mode_t(0777));
+	if(file_dest < 0)
+		return -1;
+		//goto out_error;
+	
+	while(xread = read(file_source, buffer, sizeof buffer), xread > 0){
+		char *out_ptr = buffer;
+		ssize_t nwritten;
+
+		do{
+			nwritten = write(file_dest, out_ptr, xread);
+
+			if(nwritten >= 0){
+				xread -= nwritten;
+				out_ptr += nwritten;
+			}
+			else if (errno != EINTR){
+				//goto out_error;
+				return -1;
+			}
+		}while(xread>0);
+	}
+	if(xread == 0){
+		if(close(file_dest) < 0){
+			file_dest = -1;
+			//goto out_error;
+			return -1;
+		}
+		close (file_source);
+		return 0;
+	}
+	// out_error:
+	// 	int saved_errno = errno;
+	// 	close(file_source);
+	// 	if(file_dest >= 0)
+	// 		close(file_dest);
+	// 	errno = saved_errno;
+	// 	return-1;
+}
 
 void copies(string source, string destination, string name){
 	DIR *dir; 
-	struct dirent *entry; 
-	struct stat fileinfo; 
+	struct dirent *d; 
+	struct stat filestat; 
 	if (!(dir = opendir((char *)source.c_str()))) 
 		return; 
-	string dest_path_of_source = destination+"/"+name; 
-		cerr << "shubham" << endl;
-	if (stat((char *)dest_path_of_source.c_str(), &fileinfo) == -1) { 
-		mkdir(dest_path_of_source.c_str(), __mode_t(0777)); 
-		cerr << "rawat" << endl;
-		} 
-		while ((entry = readdir(dir)) != NULL) { 
-		if (entry->d_type == 4) {
-			cerr << "enter" <<endl;
-			if (strcmp(entry->d_name, ".") == 0 || strcmp(entry->d_name, "..") == 0) continue; 
-			string source_name=entry->d_name; string source_path_fun = source+"/"+entry->d_name; 
-			copies(source_name,source_path_fun,dest_path_of_source); 
+	destination += "/";
+	destination += name; 
+		//cerr << "shubham" << endl;
+	if (stat((char *)destination.c_str(), &filestat) == -1) { 
+		mkdir(destination.c_str(), __mode_t(0777)); 
+		//cerr << "rawat" << endl;
+	} 
+	while ((d = readdir(dir)) != NULL) { 
+		if (d->d_type == 4) {
+			//cerr << "enter" <<endl;
+			if (strcmp(d->d_name, ".") == 0 || strcmp(d->d_name, "..") == 0) continue; 
+			string name=d->d_name; string source_new = source+"/"+d->d_name; 
+			//cerr <<source<<endl<<endl;
+			copies(source_new,destination,name); 
 		} 
 		else { 
-			source = source+"/"+(entry->d_name);
-			cerr << "please" << endl;
-			destination = destination +"/" +entry->d_name;
-			int fptr = open(destination.c_str(), O_RDWR|O_CREAT , 0777);
-			if(fptr = -1)
-				close(fptr);
+			string source_new = source+"/"+(d->d_name);
+			//cerr << "please" << endl;
+			string destination_new = destination +"/" +d->d_name;
+			copy_file(source_new, destination_new);
 		} 
 	} 
-		closedir(dir); 
+	closedir(dir); 
 }
 
 void Move_mode(string command){
@@ -254,7 +304,7 @@ int diropen(vector <stuff> &v,string str){
 int main()
 {	//cout.precision(1);
 	//cout << setw(10) ;
-	freopen("/home/shubham/Documents/OperAssign/txt","w",stderr);
+	freopen("/home/shubham/Documents/OperAssign/log.txt","w",stderr);
 	vector<stuff> v;
 	printf("\033[?1049h\033[H") ;
 	char choice;
@@ -383,8 +433,7 @@ int main()
 				}
     	   	}
 	   	}
-		if(choice == 58){
-			choice = fgetc(input);
+		if(choice == ':'){
 			struct winsize w;
 			ioctl(STDOUT_FILENO, TIOCGWINSZ, &w);
 			int x = w.ws_row;
