@@ -13,6 +13,7 @@
 #include <limits.h>
 #include <bits/stdc++.h>
 #include <sys/ioctl.h>
+#include <fstream>
 
 using namespace std;
 template<char delimiter>
@@ -99,7 +100,6 @@ int copy_file(string source , string destination){
 	file_dest = open(destination.c_str(), O_WRONLY | O_CREAT | O_EXCL,__mode_t(0777));
 	if(file_dest < 0)
 		return -1;
-		//goto out_error;
 	
 	while(xread = read(file_source, buffer, sizeof buffer), xread > 0){
 		char *out_ptr = buffer;
@@ -113,7 +113,6 @@ int copy_file(string source , string destination){
 				out_ptr += nwritten;
 			}
 			else if (errno != EINTR){
-				//goto out_error;
 				return -1;
 			}
 		}while(xread>0);
@@ -121,19 +120,11 @@ int copy_file(string source , string destination){
 	if(xread == 0){
 		if(close(file_dest) < 0){
 			file_dest = -1;
-			//goto out_error;
 			return -1;
 		}
 		close (file_source);
 		return 0;
 	}
-	// out_error:
-	// 	int saved_errno = errno;
-	// 	close(file_source);
-	// 	if(file_dest >= 0)
-	// 		close(file_dest);
-	// 	errno = saved_errno;
-	// 	return-1;
 }
 
 void copies(string source, string destination, string name){
@@ -210,13 +201,9 @@ void deletes(string destination){
 					perror("\nrmdir: ");
 			
 		}else{
-			cerr<<"\n deleting: "<<destination;
-			//cerr<<"here..";
 			unlink(destination.c_str());
-			perror("\nunlink34: ");
 		}
 	}
-	//closedir(dir); 
 }
 void move_dir(string, string,string);
 void move_file(string, string);
@@ -234,52 +221,106 @@ void Move_mode(vector<string>results,string str){
 			for(int i=1 ;i < results.size()-1;i++){
 			destination = str+results[results.size()-1];
 			string name = results[i];
-			move_file(source+"/"+name,destination);
+			move_file(source+"/"+name,destination+"/"+name);
 		}
 	}
 }
 void move_dir(string source, string destination,string name){
-	cerr << "move dir" << endl;
+	
 	string original_source = source;
 	copies( source, destination,name);
 	deletes(original_source);
 }
 
 void move_file(string source, string destination){
-	cerr << "move file" <<endl; 
 	string original_source = source;
 	copy_file(source, destination);
 	deletes(original_source);
 }
 
-void searches(string );
-void Search(vector<string>&results) {
+void searches(string , string);
+void Search(vector<string>&results,string str) {
 	string name = results[1];
-	searches(name);
+	searches(name,str);
 }
-void searches(string name){
-    DIR *dir = opendir(name.c_str());                
-    if(dir) {
-        char Path[256], *end = Path;
-        struct dirent *el;
-		vector <string>search;
-        strcpy(Path, name.c_str());                 
-        end += strlen(name.c_str());          
-        while((el = readdir(dir)) != NULL) {  
-            struct stat info;                
-            strcpy(end, el->d_name);       
-            if(!stat(Path, &info)){         
-                if(S_ISDIR(info.st_mode)) { 
-					printf("%s",Path);
-					cout << endl; 
-                    searches(Path);   
-                } 
-				else if(S_ISREG(info.st_mode)) { 
-				     
-                }
+void searches(string name, string str){
+	DIR *dir; 
+	struct dirent *d; 
+	struct stat filestat; 
+	vector <string> search_str;
+	string Path = str ;
+	
+	if(stat(Path.c_str(),&filestat)>=0){
+		int m = filestat.st_mode;
+		if(S_ISDIR(m)){
+			if (!(dir = opendir((char *)Path.c_str()))) 
+				return; 
+			while ((d = readdir(dir)) != NULL) {	 
+				if (d->d_type == 4) {
+					
+					if (strcmp(d->d_name, ".") == 0 || strcmp(d->d_name, "..") == 0) 
+						continue;  
+					string search_name = d->d_name;
+					string Path_new = Path+"/"+d->d_name;
+					//cerr << Path << " if " << Path_new<<endl ;
+					if(strcmp(name.c_str(),search_name.c_str())==0){
+						search_str.push_back(Path_new);
+					}
+					searches(Path_new,str); 
+				}
+				else{
+					string Path_new = Path+"/"+d->d_name; 
+					//cerr << "else" << Path_new << Path<<endl;
+					string search_name = d->d_name;
+					if(strcmp(name.c_str(),search_name.c_str())==0)
+						search_str.push_back(Path_new);	
+				} 
+					
 			}
-        }
-    }
+			printf("\033[2J");
+			printf("\033[;H");
+			for(int i=0;i<search_str.size();i++){
+				//cerr << "loop" <<endl;
+				cout << search_str[i] << endl;
+			}	
+		}
+	}
+}
+void snap_file(string ,string ,string);
+void snapshot(vector<string>&results,string str){
+	string name = str + "/" + results[1];
+	string dumpfile = results[2];
+	dumpfile = str +"/" + dumpfile;
+	string currentPath = ".";
+	snap_file(name, dumpfile,currentPath);
+}
+
+void snap_file(string name, string dumpfile, string currentPath){
+	DIR *dir; 
+	struct dirent *d; 
+	struct stat filestat; 
+	ofstream ofs;
+	dir = opendir((char *)name.c_str());
+	ofs.open (dumpfile.c_str(), std::ofstream::out | std::ofstream::app);
+	ofs<<currentPath<<" ;"<<endl;
+	while((d = readdir(dir)) != NULL){
+		if (strcmp(d->d_name, ".") == 0 || strcmp(d->d_name, "..") == 0) 
+			continue;  
+		ofs << d->d_name<<" ";
+	}
+	ofs<<endl;
+	ofs.close();
+	dir = opendir((char *)name.c_str());
+	while((d = readdir(dir)) != NULL){
+		if (strcmp(d->d_name, ".") == 0 || strcmp(d->d_name, "..") == 0) 
+			continue;  
+		if(d->d_type==4){
+			ofs.open (dumpfile.c_str(), std::ofstream::out | std::ofstream::app);
+			ofs<<d->d_name<<":"<<endl;
+			ofs.close();
+			snap_file(string(name+"/"+string(d->d_name)),string(dumpfile),string(currentPath+"/"+string(d->d_name)));
+		}
+	}
 }
 
 int diropen(vector <stuff> &v,string str){
@@ -292,11 +333,7 @@ int diropen(vector <stuff> &v,string str){
 	stat (str.c_str(), &file_stats);
 	v.clear();
 	d= opendir(str.c_str());
-	//cout << "sds " ;
-	//cout << str.c_str();
-	//chdir(str.c_str());
-	//int cursor = w.ws_row;
-	//cout << cursor << endl; 	
+		
 	if(d)
 	{
 		while((dir = readdir(d))!=NULL)
@@ -425,25 +462,22 @@ int main()
 	string str = getcwd(cwd, sizeof(cwd));
 	int v_size = diropen(v,str);
 	cursor = v_size+1;
+	vector <string>pathvector;
 	if(v_size > w.ws_row)
 		cursor = w.ws_row;
-
+	pathvector.push_back(str);
 	int k = 0 ;
 	do{     
 		choice = fgetc(input);
 		if(choice == 'q')break;
-		vector <string>pathvector;
 
-		//pathvector.push_back(str);
-		//k++;
 		
 		if(choice == 10){
+			string file = str +"/" + v[cursor -1].name;
 			if(v[cursor-1].permissions[0] == 'd'){
-				str += "/";
-				str += v[cursor-1].name;
-				pathvector.push_back(str);
+				pathvector.push_back(file);
 				k++;
-				int v_size = diropen(v,str);
+				int v_size = diropen(v,file);
 				printf("\033[2J");
 				printf("\033[;H");
 				cursor = v_size+1;
@@ -453,13 +487,8 @@ int main()
 				printer(v,i);
 			}
 			else{
-				/*if(fork()!=0)
-    				execlp("/usr/bin/xdg-open", "xdg-open", str.c_str() ,NULL);*/
-				bool pid = fork();
-				if (pid == 0) {
-				execl("/usr/bin/xdg-open", "xdg-open", str.c_str(), (char *)0);
-				exit(1);
-				}
+				if(fork()==0)
+    				execlp("/usr/bin/xdg-open", "xdg-open", file.c_str() ,NULL);
 			}
 		}
 
@@ -473,8 +502,7 @@ int main()
 						cursor--;
 						printf("\033[1A");
 						if(cursor <= i && i!=0){
-							i--;/*if(fork()!=0)
-    				execlp("/usr/bin/xdg-open", "xdg-open", str.c_str() ,NULL);*/
+							i--;
 							printf("\033[2J"); 
 							printer(v,i);
 							printf("\033[;H");
@@ -493,25 +521,26 @@ int main()
 					}
 				}
 				if(choice == 'C'){
-					int v_size = diropen(v,pathvector[++k]);
-					printf("\033[2J");
-					printf("\033[;H");
-					cursor = v_size+1;
-					if(v_size > w.ws_row)
-						cursor = w.ws_row;
-					printer(v,0);
-					
-				}	
-				if(choice == 'D'){
-					if(k>=1){
-						int v_size = diropen(v,pathvector[--k]);
+					if(k<pathvector.size()-1){
+						int v_size = diropen(v,pathvector[++k]);
 						printf("\033[2J");
 						printf("\033[;H");
 						cursor = v_size+1;
 						if(v_size > w.ws_row)
 							cursor = w.ws_row;
 						printer(v,0);
-					
+					}
+				}	
+				if(choice == 'D'){
+					if(k>=1){
+						int v_size = diropen(v,pathvector[--k]);
+						str = pathvector[k];
+						printf("\033[2J");
+						printf("\033[;H");
+						cursor = v_size+1;
+						if(v_size > w.ws_row)
+							cursor = w.ws_row;
+						printer(v,0);
 					}
 				}
     	   	}
@@ -555,7 +584,7 @@ int main()
 					}
 					
 					else if(strcmp( results[0].c_str() ,"search")== 0){
-						Search(results);
+						Search(results,str);
 						printf("\033[2K");
 						printf("\033[36;1H");
 						cout << "command mode : ";
@@ -592,6 +621,7 @@ int main()
 						cout << "command mode : ";
 					}
 					else if(strcmp( results[0].c_str() ,"snapshot")== 0){
+						snapshot(results,str);
 						printf("\033[2K");
 						printf("\033[36;1H");
 						cout << "command mode : ";
