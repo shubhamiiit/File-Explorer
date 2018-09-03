@@ -1,8 +1,0 @@
-. ;
-t1 fe 
-t1:
-./t1 ;
-fdkj fjakl fjd i 
-fe:
-./fe ;
-

@@ -413,6 +413,8 @@ int diropen(vector <stuff> &v,string str){
 			v.push_back(current);   
 		}
 		int i=0;
+		printf("\033[2J");
+		printf("\033[;H");
 		printer(v,i);
 		closedir(d);
 	}
@@ -624,6 +626,7 @@ int main()
 						snapshot(results,str);
 						printf("\033[2K");
 						printf("\033[36;1H");
+						
 						cout << "command mode : ";
 					}
 					else{
@@ -631,6 +634,13 @@ int main()
 						printf("\033[36;1H");
 						printf("Error no command found");
 					}
+					printf("\033[2K");
+					printf("\033[36;1H");
+					int v_size = diropen(v,str);
+					printf("\033[36;1H");
+					cout << "command mode : ";
+
+
 				}
 				else{
 					command += choice;
